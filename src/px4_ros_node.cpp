@@ -8,19 +8,8 @@
 
 using namespace std::chrono;
 
-
-Px4RosNode::Px4RosNode() : Node("px4_ros_node")
+void Px4RosNode::init_fmu_sub_pub()
 {
-    px4_home_pos_good = false;
-    px4_cpos_good = false;
-    px4_catt_good = false;
-    px4_geo_pos_good = false;
-    tf_good = false;
-    
-    ctrl_pos = false;
-    ctrl_vel = true;
-    t_state = 0;
-    
     auto qos = rclcpp::QoS(rclcpp::SensorDataQoS());
     
     sub_airspeed_validated           = this->create_subscription<px4_msgs::msg::AirspeedValidated        >("/fmu/out/airspeed_validated_v1",        qos, std::bind(&Px4RosNode::cb_airspeed_validated          , this, std::placeholders::_1));
@@ -72,12 +61,30 @@ Px4RosNode::Px4RosNode() : Node("px4_ros_node")
     pub_vehicle_odometry             = this->create_publisher<px4_msgs::msg::VehicleOdometry          >("/dbg/fmu/out/vehicle_odometry",             10);
     pub_vehicle_status_v1            = this->create_publisher<px4_msgs::msg::VehicleStatus            >("/dbg/fmu/out/vehicle_status_v1",            10);
     pub_vtol_vehicle_status          = this->create_publisher<px4_msgs::msg::VtolVehicleStatus        >("/dbg/fmu/out/vtol_vehicle_status",          10);
+}
+
+Px4RosNode::Px4RosNode() : Node("px4_ros_node")
+{
+    spin_cnt = 0;
+    px4_home_pos_good = false;
+    px4_cpos_good = false;
+    px4_catt_good = false;
+    px4_geo_pos_good = false;
+    tf_good = false;
+    
+    ctrl_en  = true;
+    ctrl_pos = false;
+    ctrl_vel = true;
+    t_state = 0;
+    
+    init_fmu_sub_pub();
     
     offboard_control_mode_publisher_ = this->create_publisher<px4_msgs::msg::OffboardControlMode      >("/fmu/in/offboard_control_mode",             10);
     trajectory_setpoint_publisher_   = this->create_publisher<px4_msgs::msg::TrajectorySetpoint       >("/fmu/in/trajectory_setpoint",               10);
     vehicle_command_publisher_       = this->create_publisher<px4_msgs::msg::VehicleCommand           >("/fmu/in/vehicle_command",                   10);
     
     pub_gm_ps_cpos_ned               = this->create_publisher<geometry_msgs::msg::PoseStamped         >("/px4ros/out/vehicle_local_position",        10);
+    pub_gm_ps_dbg                    = this->create_publisher<geometry_msgs::msg::PoseStamped         >("/px4ros/out/dbg_pose",                      10);
     
     tf_local_utm.header.frame_id   = "utm_origin";
     tf_local_utm.child_frame_id    = "local_enu_origin";
@@ -85,33 +92,95 @@ Px4RosNode::Px4RosNode() : Node("px4_ros_node")
     tf_fmu.header.frame_id         = "local_enu_origin";
     tf_fmu.child_frame_id          = "fmu_origin";
     
-    gm_ps_cpos_enu.header.frame_id = "local_enu_origin";
+    tf_base_link.header.frame_id   = "fmu_origin";
+    tf_base_link.child_frame_id    = "base_link";
     
-    offboard_setpoint_counter_ = 0;
-    auto timer_callback = [this]() -> void {
-        
-        if (offboard_setpoint_counter_ == 10) {
-            // Change to Offboard mode after 10 setpoints
-            this->publish_vehicle_command(px4_msgs::msg::VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
-            
-            // Arm the vehicle
-            this->arm();
-        }
-        
-        // offboard_control_mode needs to be paired with trajectory_setpoint
-        publish_offboard_control_mode();
-        publish_trajectory_setpoint();
-        
-        // stop the counter after reaching 11
-        if (offboard_setpoint_counter_ < 11) {
-            offboard_setpoint_counter_++;
-        }
-    };
-    
-    timer_ = this->create_wall_timer(100ms, timer_callback);
+    gm_ps_cpos_enu.header.frame_id = "base_link";
     
     // Initialize the transform broadcaster
     tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+    
+    // Debug point
+    gm_ps_dbg.header.frame_id = "local_enu_origin";
+    gm_ps_dbg.pose.position.x =  5.0;
+    gm_ps_dbg.pose.position.y =  5.0;
+    gm_ps_dbg.pose.position.z =  5.0;
+    tf2::Quaternion ori;
+    ori.setRPY(  0.0,  0.0,  3.141592654 );
+    gm_ps_dbg.pose.orientation.w =  ori.w();
+    gm_ps_dbg.pose.orientation.x =  ori.x();
+    gm_ps_dbg.pose.orientation.y =  ori.y();
+    gm_ps_dbg.pose.orientation.z =  ori.z();
+    
+    // run spin_main() at 50 Hz
+    timer_ = this->create_wall_timer(20ms, std::bind(&Px4RosNode::spin_main, this) );
+}
+
+int Px4RosNode::spin_main()
+{
+    if (spin_cnt == 50) {
+        // Change to Offboard mode after 50 setpoints
+        this->publish_vehicle_command(px4_msgs::msg::VehicleCommand::VEHICLE_CMD_DO_SET_MODE, 1, 6);
+        
+        // Arm the vehicle
+        this->arm();
+    }
+    
+    // offboard_control_mode needs to be paired with trajectory_setpoint
+    if(ctrl_en)
+    {
+        publish_trajectory_setpoint();
+        publish_offboard_control_mode();
+    }
+    
+    if(tf_good)
+    {
+        ////////////////////////////////////////////////////////////////////
+        tf_local_utm.header.stamp = gm_ps_cpos_enu.header.stamp;
+        tf_fmu.header.stamp       = gm_ps_cpos_enu.header.stamp;
+        tf_base_link.header.stamp = gm_ps_cpos_enu.header.stamp;
+        ////////////////////////////////////////////////////////////////////
+        tf_fmu.transform.translation.x =  px4_cpos.y;
+        tf_fmu.transform.translation.y =  px4_cpos.x;
+        tf_fmu.transform.translation.z = -px4_cpos.z;
+        tf_fmu.transform.rotation.w    = (  1.0 * (double)(px4_catt.q[0]) );
+        tf_fmu.transform.rotation.y    = (  1.0 * (double)(px4_catt.q[1]) );
+        tf_fmu.transform.rotation.x    = (  1.0 * (double)(px4_catt.q[2]) );
+        tf_fmu.transform.rotation.z    = ( -1.0 * (double)(px4_catt.q[3]) );
+        ////////////////////////////////////////////////////////////////////
+        tf_base_link.transform.translation.x = 0.0;
+        tf_base_link.transform.translation.y = 0.0;
+        tf_base_link.transform.translation.z = 0.0;
+        tf2::Quaternion ori;
+        ori.setRPY( 0.0, 0.0, 1.570796327); // + 1.570796327  3.141592654
+        tf_base_link.transform.rotation.w    = ori.w();
+        tf_base_link.transform.rotation.x    = ori.x();
+        tf_base_link.transform.rotation.y    = ori.y();
+        tf_base_link.transform.rotation.z    = ori.z();
+        ////////////////////////////////////////////////////////////////////
+        tf_broadcaster->sendTransform(tf_local_utm);
+        tf_broadcaster->sendTransform(tf_fmu);
+        tf_broadcaster->sendTransform(tf_base_link);
+        ////////////////////////////////////////////////////////////////////
+        
+        // Publish ENU Pose
+        gm_ps_cpos_enu.pose.position.x = 0; // fixed frame
+        gm_ps_cpos_enu.pose.position.y = 0; // fixed frame
+        gm_ps_cpos_enu.pose.position.z = 0; // fixed frame
+        ori.setRPY( 0.0, 0.0, 0.0 );
+        gm_ps_cpos_enu.pose.orientation.w = ori.w();
+        gm_ps_cpos_enu.pose.orientation.x = ori.x();
+        gm_ps_cpos_enu.pose.orientation.y = ori.y();
+        gm_ps_cpos_enu.pose.orientation.z = ori.z();
+        pub_gm_ps_cpos_ned->publish(gm_ps_cpos_enu);
+    }
+    
+    gm_ps_dbg.header.stamp = gm_ps_cpos_enu.header.stamp;
+    //pub_gm_ps_dbg->publish(gm_ps_dbg);
+    
+    // stop the counter after reaching 11
+    spin_cnt++;
+    return 0;
 }
 
 void Px4RosNode::calc_tf(px4_msgs::msg::HomePosition::SharedPtr msg)
@@ -126,7 +195,7 @@ void Px4RosNode::calc_tf(px4_msgs::msg::HomePosition::SharedPtr msg)
     geodesy::UTMPoint utm_home_pos;
     geodesy::fromMsg(gp_home_pos, utm_home_pos);
     
-    ori.setRPY(0.0, 0.0, 0.0);
+    ori.setRPY(0.0, 0.0, 0.0 );
     tf_local_utm.transform.translation.x =  utm_home_pos.easting;
     tf_local_utm.transform.translation.y =  utm_home_pos.northing;
     tf_local_utm.transform.translation.z =  utm_home_pos.altitude;
@@ -140,45 +209,28 @@ void Px4RosNode::calc_tf(px4_msgs::msg::HomePosition::SharedPtr msg)
 
 void Px4RosNode::grab_orientation(px4_msgs::msg::VehicleAttitude::SharedPtr msg)
 {
+    // According to https://docs.px4.io/main/en/msg_docs/VehicleAttitude.html
+    // The order is orientation(w, x, y, z)   
     px4_catt = *msg;
     px4_catt_good = true;
-    
-    // According to https://docs.px4.io/main/en/msg_docs/VehicleAttitude.html
-    // The order is orientation(w, x, y, z)
     gm_ps_cpos_enu.header.stamp = this->get_clock()->now();
-    gm_ps_cpos_enu.pose.orientation.w =   msg->q[0]; // W
-    gm_ps_cpos_enu.pose.orientation.x =   msg->q[1]; // X
-    gm_ps_cpos_enu.pose.orientation.y =   msg->q[2]; // Y
-    gm_ps_cpos_enu.pose.orientation.z =  (-1.0 * (double)(msg->q[3])); // Z
-    tf_fmu.transform.rotation.w    = gm_ps_cpos_enu.pose.orientation.w;
-    tf_fmu.transform.rotation.x    = gm_ps_cpos_enu.pose.orientation.x;
-    tf_fmu.transform.rotation.y    = gm_ps_cpos_enu.pose.orientation.y;
-    tf_fmu.transform.rotation.z    = gm_ps_cpos_enu.pose.orientation.z;
+    /*
+    ori.setW(  1.0 * (double)(px4_catt.q[0]) ); //  W
+    ori.setY(  1.0 * (double)(px4_catt.q[1]) ); //  X (Northing)
+    ori.setX(  1.0 * (double)(px4_catt.q[2]) ); //  Y (Easting)
+    ori.setZ( -1.0 * (double)(px4_catt.q[3]) ); //  Z (Upping)
+    ori = ori.inverse();
+    tf2::Matrix3x3 mat(ori);
+    double roll, pitch, yaw;
+    mat.getRPY( roll, pitch, yaw );
+    //*/
 }
 
 void Px4RosNode::publish_tf(px4_msgs::msg::VehicleLocalPosition::SharedPtr msg)
 {
     px4_cpos = *msg;
     px4_cpos_good = true;
-    // Publish ENU Pose
     gm_ps_cpos_enu.header.stamp = this->get_clock()->now();
-    gm_ps_cpos_enu.pose.position.x =  msg->y;
-    gm_ps_cpos_enu.pose.position.y =  msg->x;
-    gm_ps_cpos_enu.pose.position.z = -msg->z;
-    pub_gm_ps_cpos_ned->publish(gm_ps_cpos_enu);
-    
-    if(tf_good)
-    {
-        tf_local_utm.header.stamp = gm_ps_cpos_enu.header.stamp;
-        tf_fmu.header.stamp = gm_ps_cpos_enu.header.stamp;
-        
-        tf_fmu.transform.translation.x =  gm_ps_cpos_enu.pose.position.x;
-        tf_fmu.transform.translation.y =  gm_ps_cpos_enu.pose.position.y;
-        tf_fmu.transform.translation.z =  gm_ps_cpos_enu.pose.position.z;
-        
-        tf_broadcaster->sendTransform(tf_local_utm);
-        tf_broadcaster->sendTransform(tf_fmu);
-    }
 }
 
 /** @brief Publish vehicle commands
@@ -240,7 +292,7 @@ void Px4RosNode::publish_trajectory_setpoint()
     
     if(t_state < 2)
     {
-        if(px4_cpos.z > -10.0)
+        if(px4_cpos.z > -5.0)
         {   // NED Coordinates
             msg.position = {NAN, NAN, NAN};
             msg.velocity = {0.0, 0.0, -1.5};
@@ -248,14 +300,14 @@ void Px4RosNode::publish_trajectory_setpoint()
         else
         {
             // NED Coordinates
-            if(px4_cpos.y < 10.0 && t_state < 1) {
+            if(px4_cpos.x > -10.0 && t_state < 1) {
                 msg.position = {NAN, NAN, NAN};
-                msg.velocity = {0.0,  1.0, 0.0}; }
+                msg.velocity = {-1.0,  0.0, 0.0}; }
             else {
                 t_state = 1;
-                if(px4_cpos.y >= 0.0) {
+                if(px4_cpos.x <= 0.0) {
                     msg.position = {NAN, NAN, NAN};
-                    msg.velocity = {0.0, -1.0, 0.0}; }
+                    msg.velocity = {1.0, 0.0, 0.0}; }
                 else
                     t_state = 2;
             }
@@ -266,14 +318,19 @@ void Px4RosNode::publish_trajectory_setpoint()
         if(gm_ps_cpos_enu.pose.position.z > 0.05)
         {
             ctrl_pos = true;
-            ctrl_vel = false;
+            ctrl_vel = true;
             publish_offboard_control_mode();
-            msg.position = {0.0, 0.0, 0.0};
-            msg.velocity = {NAN, NAN, NAN};
+            msg.position = {0.0, 0.0, 1.0};
+            msg.velocity = {NAN, NAN, 0.1};
         }
         else
         {
-            disarm();
+            publish_vehicle_command(px4_msgs::msg::VehicleCommand::VEHICLE_CMD_NAV_LAND, 1.0);
+            if( px4_status.arming_state == px4_msgs::msg::VehicleStatus::ARMING_STATE_ARMED )
+            {
+                ctrl_en = false;
+                //disarm();
+            }
         }
             
     }

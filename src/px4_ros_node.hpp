@@ -12,8 +12,12 @@
 
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <tf2/convert.hpp>
+#include <tf2/LinearMath/Quaternion.hpp>
+#include <tf2/LinearMath/Matrix3x3.hpp>
 
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/point_stamped.hpp>
 
 #include <geodesy/utm.h>
 #include <geodesy/wgs84.h>
@@ -117,23 +121,29 @@ private:
     rclcpp::Publisher<px4_msgs::msg::VehicleCommand              >::SharedPtr vehicle_command_publisher_;
     
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped            >::SharedPtr pub_gm_ps_cpos_ned;
+    rclcpp::Publisher<geometry_msgs::msg::PoseStamped            >::SharedPtr pub_gm_ps_dbg;
     
+    int spin_cnt;
     px4_msgs::msg::HomePosition          px4_home_pos;
     px4_msgs::msg::VehicleLocalPosition  px4_cpos;
     px4_msgs::msg::VehicleAttitude       px4_catt;
     px4_msgs::msg::VehicleGlobalPosition px4_geo_pos;
+    px4_msgs::msg::VehicleStatus         px4_status;
     
     bool px4_home_pos_good;
     bool px4_cpos_good;
     bool px4_catt_good;
     bool px4_geo_pos_good;
+    bool px4_status_good;
     
     geometry_msgs::msg::PoseStamped gm_ps_cpos_enu;
+    geometry_msgs::msg::PoseStamped gm_ps_dbg;
     
     geographic_msgs::msg::GeoPoint gp_home_pos;
     
     rclcpp::TimerBase::SharedPtr timer_;
     uint64_t offboard_setpoint_counter_;   //!< counter for the number of setpoints sent
+    bool ctrl_en;
     bool ctrl_pos;
     bool ctrl_vel;
     //rclcpp::Subscription<turtlesim::msg::Pose>::SharedPtr subscription_;
@@ -141,6 +151,7 @@ private:
     
     geometry_msgs::msg::TransformStamped tf_local_utm;
     geometry_msgs::msg::TransformStamped tf_fmu;
+    geometry_msgs::msg::TransformStamped tf_base_link;
     bool tf_good;
     
     void cb_airspeed_validated          (const px4_msgs::msg::AirspeedValidated::SharedPtr         msg){ pub_airspeed_validated          ->publish(*msg); }
@@ -160,12 +171,12 @@ private:
     void cb_vehicle_attitude            (const px4_msgs::msg::VehicleAttitude::SharedPtr           msg){ pub_vehicle_attitude            ->publish(*msg); grab_orientation(msg); }
     void cb_vehicle_command_ack         (const px4_msgs::msg::VehicleCommandAck::SharedPtr         msg){ pub_vehicle_command_ack         ->publish(*msg); }
     void cb_vehicle_control_mode        (const px4_msgs::msg::VehicleControlMode::SharedPtr        msg){ pub_vehicle_control_mode        ->publish(*msg); }
-    void cb_vehicle_global_position     (const px4_msgs::msg::VehicleGlobalPosition::SharedPtr     msg){ pub_vehicle_global_position     ->publish(*msg); px4_geo_pos = *msg; px4_geo_pos_good = true;}
+    void cb_vehicle_global_position     (const px4_msgs::msg::VehicleGlobalPosition::SharedPtr     msg){ pub_vehicle_global_position     ->publish(*msg); px4_geo_pos = *msg; px4_geo_pos_good = true; }
     void cb_vehicle_gps_position        (const px4_msgs::msg::SensorGps::SharedPtr                 msg){ pub_vehicle_gps_position        ->publish(*msg); }
     void cb_vehicle_land_detected       (const px4_msgs::msg::VehicleLandDetected::SharedPtr       msg){ pub_vehicle_land_detected       ->publish(*msg); }
     void cb_vehicle_local_position      (const px4_msgs::msg::VehicleLocalPosition::SharedPtr      msg){ pub_vehicle_local_position      ->publish(*msg); publish_tf(msg); }
     void cb_vehicle_odometry            (const px4_msgs::msg::VehicleOdometry::SharedPtr           msg){ pub_vehicle_odometry            ->publish(*msg); }
-    void cb_vehicle_status_v1           (const px4_msgs::msg::VehicleStatus::SharedPtr             msg){ pub_vehicle_status_v1           ->publish(*msg); }
+    void cb_vehicle_status_v1           (const px4_msgs::msg::VehicleStatus::SharedPtr             msg){ pub_vehicle_status_v1           ->publish(*msg); px4_status = *msg; px4_status_good = true; }
     void cb_vtol_vehicle_status         (const px4_msgs::msg::VtolVehicleStatus::SharedPtr         msg){ pub_vtol_vehicle_status         ->publish(*msg); }
     
     /*
@@ -193,7 +204,9 @@ private:
     void publish_trajectory_setpoint();
     void publish_vehicle_command(uint16_t command, float param1 = 0.0, float param2 = 0.0);
     
-    static void timer_callback();
+    void init_fmu_sub_pub();
+    
+    int spin_main();
     
     void grab_orientation(px4_msgs::msg::VehicleAttitude::SharedPtr msg);
     void calc_tf(px4_msgs::msg::HomePosition::SharedPtr msg);
