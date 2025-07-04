@@ -124,12 +124,14 @@ private:
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped            >::SharedPtr pub_gm_ps_dbg;
     
     int spin_cnt;
+    px4_msgs::msg::VehicleOdometry       px4_odom;
     px4_msgs::msg::HomePosition          px4_home_pos;
     px4_msgs::msg::VehicleLocalPosition  px4_cpos;
     px4_msgs::msg::VehicleAttitude       px4_catt;
     px4_msgs::msg::VehicleGlobalPosition px4_geo_pos;
     px4_msgs::msg::VehicleStatus         px4_status;
     
+    bool px4_odom_good;
     bool px4_home_pos_good;
     bool px4_cpos_good;
     bool px4_catt_good;
@@ -153,6 +155,8 @@ private:
     geometry_msgs::msg::TransformStamped tf_fmu;
     geometry_msgs::msg::TransformStamped tf_base_link;
     bool tf_good;
+    double theta_traj;
+    double theta_traj_dx;
     
     void cb_airspeed_validated          (const px4_msgs::msg::AirspeedValidated::SharedPtr         msg){ pub_airspeed_validated          ->publish(*msg); }
     void cb_arming_check_request        (const px4_msgs::msg::ArmingCheckRequest::SharedPtr        msg){ pub_arming_check_request        ->publish(*msg); }
@@ -160,7 +164,7 @@ private:
     void cb_collision_constraints       (const px4_msgs::msg::CollisionConstraints::SharedPtr      msg){ pub_collision_constraints       ->publish(*msg); }
     void cb_estimator_status_flags      (const px4_msgs::msg::EstimatorStatusFlags::SharedPtr      msg){ pub_estimator_status_flags      ->publish(*msg); }
     void cb_failsafe_flags              (const px4_msgs::msg::FailsafeFlags::SharedPtr             msg){ pub_failsafe_flags              ->publish(*msg); }
-    void cb_home_position               (const px4_msgs::msg::HomePosition::SharedPtr              msg){ pub_home_position               ->publish(*msg); if(!px4_home_pos_good && px4_cpos_good && px4_catt_good) calc_tf(msg); }
+    void cb_home_position               (const px4_msgs::msg::HomePosition::SharedPtr              msg){ pub_home_position               ->publish(*msg); if(!px4_home_pos_good && px4_cpos_good && px4_catt_good) calc_utm_tf(msg); }
     void cb_manual_control_setpoint     (const px4_msgs::msg::ManualControlSetpoint::SharedPtr     msg){ pub_manual_control_setpoint     ->publish(*msg); }
     void cb_message_format_response     (const px4_msgs::msg::MessageFormatResponse::SharedPtr     msg){ pub_message_format_response     ->publish(*msg); }
     void cb_mode_completed              (const px4_msgs::msg::ModeCompleted::SharedPtr             msg){ pub_mode_completed              ->publish(*msg); }
@@ -168,14 +172,14 @@ private:
     void cb_register_ext_component_reply(const px4_msgs::msg::RegisterExtComponentReply::SharedPtr msg){ pub_register_ext_component_reply->publish(*msg); }
     void cb_sensor_combined             (const px4_msgs::msg::SensorCombined::SharedPtr            msg){ pub_sensor_combined             ->publish(*msg); }
     void cb_timesync_status             (const px4_msgs::msg::TimesyncStatus::SharedPtr            msg){ pub_timesync_status             ->publish(*msg); }
-    void cb_vehicle_attitude            (const px4_msgs::msg::VehicleAttitude::SharedPtr           msg){ pub_vehicle_attitude            ->publish(*msg); grab_orientation(msg); }
+    void cb_vehicle_attitude            (const px4_msgs::msg::VehicleAttitude::SharedPtr           msg){ pub_vehicle_attitude            ->publish(*msg); px4_catt = *msg; px4_catt_good = true;}
     void cb_vehicle_command_ack         (const px4_msgs::msg::VehicleCommandAck::SharedPtr         msg){ pub_vehicle_command_ack         ->publish(*msg); }
     void cb_vehicle_control_mode        (const px4_msgs::msg::VehicleControlMode::SharedPtr        msg){ pub_vehicle_control_mode        ->publish(*msg); }
     void cb_vehicle_global_position     (const px4_msgs::msg::VehicleGlobalPosition::SharedPtr     msg){ pub_vehicle_global_position     ->publish(*msg); px4_geo_pos = *msg; px4_geo_pos_good = true; }
     void cb_vehicle_gps_position        (const px4_msgs::msg::SensorGps::SharedPtr                 msg){ pub_vehicle_gps_position        ->publish(*msg); }
     void cb_vehicle_land_detected       (const px4_msgs::msg::VehicleLandDetected::SharedPtr       msg){ pub_vehicle_land_detected       ->publish(*msg); }
-    void cb_vehicle_local_position      (const px4_msgs::msg::VehicleLocalPosition::SharedPtr      msg){ pub_vehicle_local_position      ->publish(*msg); publish_tf(msg); }
-    void cb_vehicle_odometry            (const px4_msgs::msg::VehicleOdometry::SharedPtr           msg){ pub_vehicle_odometry            ->publish(*msg); }
+    void cb_vehicle_local_position      (const px4_msgs::msg::VehicleLocalPosition::SharedPtr      msg){ pub_vehicle_local_position      ->publish(*msg); px4_cpos = *msg; px4_cpos_good = true; }
+    void cb_vehicle_odometry            (const px4_msgs::msg::VehicleOdometry::SharedPtr           msg){ pub_vehicle_odometry            ->publish(*msg); grab_odom(msg); }
     void cb_vehicle_status_v1           (const px4_msgs::msg::VehicleStatus::SharedPtr             msg){ pub_vehicle_status_v1           ->publish(*msg); px4_status = *msg; px4_status_good = true; }
     void cb_vtol_vehicle_status         (const px4_msgs::msg::VtolVehicleStatus::SharedPtr         msg){ pub_vtol_vehicle_status         ->publish(*msg); }
     
@@ -209,8 +213,8 @@ private:
     int spin_main();
     
     void grab_orientation(px4_msgs::msg::VehicleAttitude::SharedPtr msg);
-    void calc_tf(px4_msgs::msg::HomePosition::SharedPtr msg);
-    void publish_tf(px4_msgs::msg::VehicleLocalPosition::SharedPtr msg);
+    void calc_utm_tf(px4_msgs::msg::HomePosition::SharedPtr msg);
+    void grab_odom(px4_msgs::msg::VehicleOdometry::SharedPtr msg);
     
     int t_state;
 };
