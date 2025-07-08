@@ -37,30 +37,63 @@ void Px4RosNode::init_fmu_sub_pub()
     sub_vehicle_status_v1            = this->create_subscription<px4_msgs::msg::VehicleStatus            >("/fmu/out/vehicle_status_v1",            qos, std::bind(&Px4RosNode::cb_vehicle_status_v1           , this, std::placeholders::_1));
     sub_vtol_vehicle_status          = this->create_subscription<px4_msgs::msg::VtolVehicleStatus        >("/fmu/out/vtol_vehicle_status",          qos, std::bind(&Px4RosNode::cb_vtol_vehicle_status         , this, std::placeholders::_1));
     
-    pub_airspeed_validated           = this->create_publisher<px4_msgs::msg::AirspeedValidated        >("/dbg/fmu/out/airspeed_validated_v1",        10);
-    pub_arming_check_request         = this->create_publisher<px4_msgs::msg::ArmingCheckRequest       >("/dbg/fmu/out/arming_check_request",         10);
-    pub_battery_status               = this->create_publisher<px4_msgs::msg::BatteryStatus            >("/dbg/fmu/out/battery_status",               10);
-    pub_collision_constraints        = this->create_publisher<px4_msgs::msg::CollisionConstraints     >("/dbg/fmu/out/collision_constraints",        10);
-    pub_estimator_status_flags       = this->create_publisher<px4_msgs::msg::EstimatorStatusFlags     >("/dbg/fmu/out/estimator_status_flags",       10);
-    pub_failsafe_flags               = this->create_publisher<px4_msgs::msg::FailsafeFlags            >("/dbg/fmu/out/failsafe_flags",               10);
-    pub_home_position                = this->create_publisher<px4_msgs::msg::HomePosition             >("/dbg/fmu/out/home_position",                10);
-    pub_manual_control_setpoint      = this->create_publisher<px4_msgs::msg::ManualControlSetpoint    >("/dbg/fmu/out/manual_control_setpoint",      10);
-    pub_message_format_response      = this->create_publisher<px4_msgs::msg::MessageFormatResponse    >("/dbg/fmu/out/message_format_response",      10);
-    pub_mode_completed               = this->create_publisher<px4_msgs::msg::ModeCompleted            >("/dbg/fmu/out/mode_completed",               10);
-    pub_position_setpoint_triplet    = this->create_publisher<px4_msgs::msg::PositionSetpointTriplet  >("/dbg/fmu/out/position_setpoint_triplet",    10);
-    pub_register_ext_component_reply = this->create_publisher<px4_msgs::msg::RegisterExtComponentReply>("/dbg/fmu/out/register_ext_component_reply", 10);
-    pub_sensor_combined              = this->create_publisher<px4_msgs::msg::SensorCombined           >("/dbg/fmu/out/sensor_combined",              10);
-    pub_timesync_status              = this->create_publisher<px4_msgs::msg::TimesyncStatus           >("/dbg/fmu/out/timesync_status",              10);
-    pub_vehicle_attitude             = this->create_publisher<px4_msgs::msg::VehicleAttitude          >("/dbg/fmu/out/vehicle_attitude",             10);
-    pub_vehicle_command_ack          = this->create_publisher<px4_msgs::msg::VehicleCommandAck        >("/dbg/fmu/out/vehicle_command_ack",          10);
-    pub_vehicle_control_mode         = this->create_publisher<px4_msgs::msg::VehicleControlMode       >("/dbg/fmu/out/vehicle_control_mode",         10);
-    pub_vehicle_global_position      = this->create_publisher<px4_msgs::msg::VehicleGlobalPosition    >("/dbg/fmu/out/vehicle_global_position",      10);
-    pub_vehicle_gps_position         = this->create_publisher<px4_msgs::msg::SensorGps                >("/dbg/fmu/out/vehicle_gps_position",         10);
-    pub_vehicle_land_detected        = this->create_publisher<px4_msgs::msg::VehicleLandDetected      >("/dbg/fmu/out/vehicle_land_detected",        10);
-    pub_vehicle_local_position       = this->create_publisher<px4_msgs::msg::VehicleLocalPosition     >("/dbg/fmu/out/vehicle_local_position",       10);
-    pub_vehicle_odometry             = this->create_publisher<px4_msgs::msg::VehicleOdometry          >("/dbg/fmu/out/vehicle_odometry",             10);
-    pub_vehicle_status_v1            = this->create_publisher<px4_msgs::msg::VehicleStatus            >("/dbg/fmu/out/vehicle_status_v1",            10);
-    pub_vtol_vehicle_status          = this->create_publisher<px4_msgs::msg::VtolVehicleStatus        >("/dbg/fmu/out/vtol_vehicle_status",          10);
+    rpb_airspeed_validated           = this->create_publisher<px4_msgs::msg::AirspeedValidated        >("/px4_ros/fmu/out/airspeed_validated_v1",        10);
+    rpb_arming_check_request         = this->create_publisher<px4_msgs::msg::ArmingCheckRequest       >("/px4_ros/fmu/out/arming_check_request",         10);
+    rpb_battery_status               = this->create_publisher<px4_msgs::msg::BatteryStatus            >("/px4_ros/fmu/out/battery_status",               10);
+    rpb_collision_constraints        = this->create_publisher<px4_msgs::msg::CollisionConstraints     >("/px4_ros/fmu/out/collision_constraints",        10);
+    rpb_estimator_status_flags       = this->create_publisher<px4_msgs::msg::EstimatorStatusFlags     >("/px4_ros/fmu/out/estimator_status_flags",       10);
+    rpb_failsafe_flags               = this->create_publisher<px4_msgs::msg::FailsafeFlags            >("/px4_ros/fmu/out/failsafe_flags",               10);
+    rpb_home_position                = this->create_publisher<px4_msgs::msg::HomePosition             >("/px4_ros/fmu/out/home_position",                10);
+    rpb_manual_control_setpoint      = this->create_publisher<px4_msgs::msg::ManualControlSetpoint    >("/px4_ros/fmu/out/manual_control_setpoint",      10);
+    rpb_message_format_response      = this->create_publisher<px4_msgs::msg::MessageFormatResponse    >("/px4_ros/fmu/out/message_format_response",      10);
+    rpb_mode_completed               = this->create_publisher<px4_msgs::msg::ModeCompleted            >("/px4_ros/fmu/out/mode_completed",               10);
+    rpb_position_setpoint_triplet    = this->create_publisher<px4_msgs::msg::PositionSetpointTriplet  >("/px4_ros/fmu/out/position_setpoint_triplet",    10);
+    rpb_register_ext_component_reply = this->create_publisher<px4_msgs::msg::RegisterExtComponentReply>("/px4_ros/fmu/out/register_ext_component_reply", 10);
+    rpb_sensor_combined              = this->create_publisher<px4_msgs::msg::SensorCombined           >("/px4_ros/fmu/out/sensor_combined",              10);
+    rpb_timesync_status              = this->create_publisher<px4_msgs::msg::TimesyncStatus           >("/px4_ros/fmu/out/timesync_status",              10);
+    rpb_vehicle_attitude             = this->create_publisher<px4_msgs::msg::VehicleAttitude          >("/px4_ros/fmu/out/vehicle_attitude",             10);
+    rpb_vehicle_command_ack          = this->create_publisher<px4_msgs::msg::VehicleCommandAck        >("/px4_ros/fmu/out/vehicle_command_ack",          10);
+    rpb_vehicle_control_mode         = this->create_publisher<px4_msgs::msg::VehicleControlMode       >("/px4_ros/fmu/out/vehicle_control_mode",         10);
+    rpb_vehicle_global_position      = this->create_publisher<px4_msgs::msg::VehicleGlobalPosition    >("/px4_ros/fmu/out/vehicle_global_position",      10);
+    rpb_vehicle_gps_position         = this->create_publisher<px4_msgs::msg::SensorGps                >("/px4_ros/fmu/out/vehicle_gps_position",         10);
+    rpb_vehicle_land_detected        = this->create_publisher<px4_msgs::msg::VehicleLandDetected      >("/px4_ros/fmu/out/vehicle_land_detected",        10);
+    rpb_vehicle_local_position       = this->create_publisher<px4_msgs::msg::VehicleLocalPosition     >("/px4_ros/fmu/out/vehicle_local_position",       10);
+    rpb_vehicle_odometry             = this->create_publisher<px4_msgs::msg::VehicleOdometry          >("/px4_ros/fmu/out/vehicle_odometry",             10);
+    rpb_vehicle_status_v1            = this->create_publisher<px4_msgs::msg::VehicleStatus            >("/px4_ros/fmu/out/vehicle_status_v1",            10);
+    rpb_vtol_vehicle_status          = this->create_publisher<px4_msgs::msg::VtolVehicleStatus        >("/px4_ros/fmu/out/vtol_vehicle_status",          10);
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	pub_actuator_motors                    = this->create_publisher<px4_msgs::msg::ActuatorMotors                  >("/fmu/in/actuator_motors",                    qos);
+	pub_actuator_servos                    = this->create_publisher<px4_msgs::msg::ActuatorServos                  >("/fmu/in/actuator_servos",                    qos);
+	pub_arming_check_reply_v1              = this->create_publisher<px4_msgs::msg::ArmingCheckReply                >("/fmu/in/arming_check_reply_v1",              qos);
+	pub_aux_global_position                = this->create_publisher<px4_msgs::msg::VehicleGlobalPosition           >("/fmu/in/aux_global_position",                qos);
+	pub_config_control_setpoints           = this->create_publisher<px4_msgs::msg::VehicleControlMode              >("/fmu/in/config_control_setpoints",           qos);
+	pub_config_overrides_request           = this->create_publisher<px4_msgs::msg::ConfigOverrides                 >("/fmu/in/config_overrides_request",           qos);
+	pub_distance_sensor                    = this->create_publisher<px4_msgs::msg::DistanceSensor                  >("/fmu/in/distance_sensor",                    qos);
+	pub_fixed_wing_lateral_setpoint        = this->create_publisher<px4_msgs::msg::FixedWingLateralSetpoint        >("/fmu/in/fixed_wing_lateral_setpoint",        qos);
+	pub_fixed_wing_longitudinal_setpoint   = this->create_publisher<px4_msgs::msg::FixedWingLongitudinalSetpoint   >("/fmu/in/fixed_wing_longitudinal_setpoint",   qos);
+	pub_goto_setpoint                      = this->create_publisher<px4_msgs::msg::GotoSetpoint                    >("/fmu/in/goto_setpoint",                      qos);
+	pub_lateral_control_configuration      = this->create_publisher<px4_msgs::msg::LateralControlConfiguration     >("/fmu/in/lateral_control_configuration",      qos);
+	pub_longitudinal_control_configuration = this->create_publisher<px4_msgs::msg::LongitudinalControlConfiguration>("/fmu/in/longitudinal_control_configuration", qos);
+	pub_manual_control_input               = this->create_publisher<px4_msgs::msg::ManualControlSetpoint           >("/fmu/in/manual_control_input",               qos);
+	pub_message_format_request             = this->create_publisher<px4_msgs::msg::MessageFormatRequest            >("/fmu/in/message_format_request",             qos);
+	pub_mode_completed                     = this->create_publisher<px4_msgs::msg::ModeCompleted                   >("/fmu/in/mode_completed",                     qos);
+	pub_obstacle_distance                  = this->create_publisher<px4_msgs::msg::ObstacleDistance                >("/fmu/in/obstacle_distance",                  qos);
+	pub_offboard_control_mode              = this->create_publisher<px4_msgs::msg::OffboardControlMode             >("/fmu/in/offboard_control_mode",              qos);
+	pub_onboard_computer_status            = this->create_publisher<px4_msgs::msg::OnboardComputerStatus           >("/fmu/in/onboard_computer_status",            qos);
+	pub_register_ext_component_request     = this->create_publisher<px4_msgs::msg::RegisterExtComponentRequest     >("/fmu/in/register_ext_component_request",     qos);
+	pub_sensor_optical_flow                = this->create_publisher<px4_msgs::msg::SensorOpticalFlow               >("/fmu/in/sensor_optical_flow",                qos);
+	pub_telemetry_status                   = this->create_publisher<px4_msgs::msg::TelemetryStatus                 >("/fmu/in/telemetry_status",                   qos);
+	pub_trajectory_setpoint                = this->create_publisher<px4_msgs::msg::TrajectorySetpoint              >("/fmu/in/trajectory_setpoint",                qos);
+	pub_unregister_ext_component           = this->create_publisher<px4_msgs::msg::UnregisterExtComponent          >("/fmu/in/unregister_ext_component",           qos);
+	pub_vehicle_attitude_setpoint_v1       = this->create_publisher<px4_msgs::msg::VehicleAttitudeSetpoint         >("/fmu/in/vehicle_attitude_setpoint_v1",       qos);
+	pub_vehicle_command                    = this->create_publisher<px4_msgs::msg::VehicleCommand                  >("/fmu/in/vehicle_command",                    qos);
+	pub_vehicle_command_mode_executor      = this->create_publisher<px4_msgs::msg::VehicleCommand                  >("/fmu/in/vehicle_command_mode_executor",      qos);
+	pub_vehicle_mocap_odometry             = this->create_publisher<px4_msgs::msg::VehicleOdometry                 >("/fmu/in/vehicle_mocap_odometry",             qos);
+	pub_vehicle_rates_setpoint             = this->create_publisher<px4_msgs::msg::VehicleRatesSetpoint            >("/fmu/in/vehicle_rates_setpoint",             qos);
+	pub_vehicle_thrust_setpoint            = this->create_publisher<px4_msgs::msg::VehicleThrustSetpoint           >("/fmu/in/vehicle_thrust_setpoint",            qos);
+	pub_vehicle_torque_setpoint            = this->create_publisher<px4_msgs::msg::VehicleTorqueSetpoint           >("/fmu/in/vehicle_torque_setpoint",            qos);
+	pub_vehicle_visual_odometry            = this->create_publisher<px4_msgs::msg::VehicleOdometry                 >("/fmu/in/vehicle_visual_odometry",            qos);
+    
 }
 
 Px4RosNode::Px4RosNode() : Node("px4_ros_node")
@@ -80,38 +113,38 @@ Px4RosNode::Px4RosNode() : Node("px4_ros_node")
     
     init_fmu_sub_pub();
     
-    offboard_control_mode_publisher_ = this->create_publisher<px4_msgs::msg::OffboardControlMode      >("/fmu/in/offboard_control_mode",             10);
-    trajectory_setpoint_publisher_   = this->create_publisher<px4_msgs::msg::TrajectorySetpoint       >("/fmu/in/trajectory_setpoint",               10);
-    vehicle_command_publisher_       = this->create_publisher<px4_msgs::msg::VehicleCommand           >("/fmu/in/vehicle_command",                   10);
-    
-    pub_gm_ps_cpos_ned               = this->create_publisher<geometry_msgs::msg::PoseStamped         >("/px4ros/out/vehicle_local_position",        10);
-    pub_gm_ps_dbg                    = this->create_publisher<geometry_msgs::msg::PoseStamped         >("/px4ros/out/dbg_pose",                      10);
+    pub_ros_pose_enu               = this->create_publisher<geometry_msgs::msg::PoseStamped>("/px4ros/out/vehicle_local_position",        10);
+    pub_ros_odom                   = this->create_publisher<nav_msgs::msg::Odometry        >("/px4ros/out/odom",                          10);
+    pub_ros_dbg_pose               = this->create_publisher<geometry_msgs::msg::PoseStamped>("/px4ros/out/dbg_pose",                      10);
     
     tf_local_utm.header.frame_id   = "utm_origin";
     tf_local_utm.child_frame_id    = "local_enu_origin";
     
     tf_fmu.header.frame_id         = "local_enu_origin";
-    tf_fmu.child_frame_id          = "fmu_origin";
+    tf_fmu.child_frame_id          = "base_link";
     
-    tf_base_link.header.frame_id   = "fmu_origin";
-    tf_base_link.child_frame_id    = "base_link";
+    //tf_base_link.header.frame_id   = "fmu_origin";
+    //tf_base_link.child_frame_id    = "base_link";
     
-    gm_ps_cpos_enu.header.frame_id = "base_link";
+    ros_odom.header.frame_id       = "local_enu_origin";
+    ros_odom.child_frame_id        = "base_link";
+    
+    ros_pose_enu.header.frame_id   = "base_link";
+    ros_dbg_pose.header.frame_id   = "local_enu_origin";
     
     // Initialize the transform broadcaster
     tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     
     // Debug point
-    gm_ps_dbg.header.frame_id = "local_enu_origin";
-    gm_ps_dbg.pose.position.x =  5.0;
-    gm_ps_dbg.pose.position.y =  5.0;
-    gm_ps_dbg.pose.position.z =  5.0;
+    ros_dbg_pose.pose.position.x =  5.0;
+    ros_dbg_pose.pose.position.y =  5.0;
+    ros_dbg_pose.pose.position.z =  5.0;
     tf2::Quaternion ori;
     ori.setRPY(  0.0,  0.0,  3.141592654 );
-    gm_ps_dbg.pose.orientation.w =  ori.w();
-    gm_ps_dbg.pose.orientation.x =  ori.x();
-    gm_ps_dbg.pose.orientation.y =  ori.y();
-    gm_ps_dbg.pose.orientation.z =  ori.z();
+    ros_dbg_pose.pose.orientation.w =  ori.w();
+    ros_dbg_pose.pose.orientation.x =  ori.x();
+    ros_dbg_pose.pose.orientation.y =  ori.y();
+    ros_dbg_pose.pose.orientation.z =  ori.z();
     
     double theta_T = 30.0;
     theta_traj = 0.0;
@@ -138,7 +171,7 @@ int Px4RosNode::spin_main()
         publish_offboard_control_mode();
     }
     
-    gm_ps_dbg.header.stamp = gm_ps_cpos_enu.header.stamp;
+    ros_dbg_pose.header.stamp = ros_odom.header.stamp;
     //pub_gm_ps_dbg->publish(gm_ps_dbg);
     
     // stop the counter after reaching 11
@@ -150,13 +183,13 @@ void Px4RosNode::calc_utm_tf(px4_msgs::msg::HomePosition::SharedPtr msg)
 {
     px4_home_pos = *msg;
     px4_home_pos_good = true;
-    gp_home_pos.altitude  = msg->alt;
-    gp_home_pos.latitude  = msg->lat;
-    gp_home_pos.longitude = msg->lon;
+    ros_home_pos.altitude  = msg->alt;
+    ros_home_pos.latitude  = msg->lat;
+    ros_home_pos.longitude = msg->lon;
     
     tf2::Quaternion ori;
     geodesy::UTMPoint utm_home_pos;
-    geodesy::fromMsg(gp_home_pos, utm_home_pos);
+    geodesy::fromMsg(ros_home_pos, utm_home_pos);
     
     ori.setRPY(0.0, 0.0, 0.0 );
     tf_local_utm.transform.translation.x =  utm_home_pos.easting;
@@ -176,7 +209,7 @@ void Px4RosNode::grab_orientation(px4_msgs::msg::VehicleAttitude::SharedPtr msg)
     // The order is orientation(w, x, y, z)   
     px4_catt = *msg;
     px4_catt_good = true;
-    gm_ps_cpos_enu.header.stamp = this->get_clock()->now();
+    ros_pose_enu.header.stamp = this->get_clock()->now();
     /*
     ori.setW(  1.0 * (double)(px4_catt.q[0]) ); //  W
     ori.setY(  1.0 * (double)(px4_catt.q[1]) ); //  X (Northing)
@@ -193,50 +226,66 @@ void Px4RosNode::grab_odom(px4_msgs::msg::VehicleOdometry::SharedPtr msg)
 {
     px4_odom = *msg;
     px4_odom_good = true;
-    gm_ps_cpos_enu.header.stamp = this->get_clock()->now();
+    tf2::Quaternion ori;
+    
+    ros_odom.header.stamp = this->get_clock()->now();
     
     tf_good = px4_home_pos_good & px4_odom_good;
     if(tf_good)
     {
         ////////////////////////////////////////////////////////////////////
-        tf_local_utm.header.stamp = gm_ps_cpos_enu.header.stamp;
-        tf_fmu.header.stamp       = gm_ps_cpos_enu.header.stamp;
-        tf_base_link.header.stamp = gm_ps_cpos_enu.header.stamp;
+        tf_local_utm.header.stamp = ros_odom.header.stamp;
+        tf_fmu.header.stamp       = ros_odom.header.stamp;
+        //tf_base_link.header.stamp = ros_odom.header.stamp;
         ////////////////////////////////////////////////////////////////////
-        tf_fmu.transform.translation.x =  px4_odom.position[1];
         tf_fmu.transform.translation.y =  px4_odom.position[0];
+        tf_fmu.transform.translation.x =  px4_odom.position[1];
         tf_fmu.transform.translation.z = -px4_odom.position[2];
-        tf_fmu.transform.rotation.w    = (  1.0 * (double)(px4_odom.q[0]) );
-        tf_fmu.transform.rotation.y    = (  1.0 * (double)(px4_odom.q[1]) );
-        tf_fmu.transform.rotation.x    = (  1.0 * (double)(px4_odom.q[2]) );
-        tf_fmu.transform.rotation.z    = ( -1.0 * (double)(px4_odom.q[3]) );
+        ori.setW(  1.0 * (double)(px4_odom.q[0]) );
+        ori.setX(  1.0 * (double)(px4_odom.q[1]) );
+        ori.setY(  1.0 * (double)(px4_odom.q[2]) );
+        ori.setZ( -1.0 * (double)(px4_odom.q[3]) );
+        tf2::Quaternion bl_ori;
+        bl_ori.setRPY( 0.0, 0.0, 1.570796327); // + 1.570796327  3.141592654
+        ori = ori * bl_ori;
+        tf_fmu.transform.rotation.w    = ori.w();
+        tf_fmu.transform.rotation.y    = ori.x();
+        tf_fmu.transform.rotation.x    = ori.y();
+        tf_fmu.transform.rotation.z    = ori.z();
         ////////////////////////////////////////////////////////////////////
-        tf_base_link.transform.translation.x = 0.0;
-        tf_base_link.transform.translation.y = 0.0;
-        tf_base_link.transform.translation.z = 0.0;
-        tf2::Quaternion ori;
-        ori.setRPY( 0.0, 0.0, 1.570796327); // + 1.570796327  3.141592654
-        tf_base_link.transform.rotation.w    = ori.w();
-        tf_base_link.transform.rotation.x    = ori.x();
-        tf_base_link.transform.rotation.y    = ori.y();
-        tf_base_link.transform.rotation.z    = ori.z();
+        // tf_base_link.transform.translation.x = 0.0;
+        // tf_base_link.transform.translation.y = 0.0;
+        // tf_base_link.transform.translation.z = 0.0;
+        // tf_base_link.transform.rotation.w    = bl_ori.w();
+        // tf_base_link.transform.rotation.x    = bl_ori.x();
+        // tf_base_link.transform.rotation.y    = bl_ori.y();
+        // tf_base_link.transform.rotation.z    = bl_ori.z();
         ////////////////////////////////////////////////////////////////////
         tf_broadcaster->sendTransform(tf_local_utm);
         tf_broadcaster->sendTransform(tf_fmu);
-        tf_broadcaster->sendTransform(tf_base_link);
+        // tf_broadcaster->sendTransform(tf_base_link);
         ////////////////////////////////////////////////////////////////////
-        
-        // Publish ENU Pose
-        gm_ps_cpos_enu.pose.position.x = 0; // fixed frame
-        gm_ps_cpos_enu.pose.position.y = 0; // fixed frame
-        gm_ps_cpos_enu.pose.position.z = 0; // fixed frame
-        ori.setRPY( 0.0, 0.0, 0.0 );
-        gm_ps_cpos_enu.pose.orientation.w = ori.w();
-        gm_ps_cpos_enu.pose.orientation.x = ori.x();
-        gm_ps_cpos_enu.pose.orientation.y = ori.y();
-        gm_ps_cpos_enu.pose.orientation.z = ori.z();
-        pub_gm_ps_cpos_ned->publish(gm_ps_cpos_enu);
+        ros_odom.pose.pose.position.x    = tf_fmu.transform.translation.x;
+        ros_odom.pose.pose.position.y    = tf_fmu.transform.translation.y;
+        ros_odom.pose.pose.position.z    = tf_fmu.transform.translation.z;
+        ros_odom.pose.pose.orientation.w = ori.w();
+        ros_odom.pose.pose.orientation.x = ori.x();
+        ros_odom.pose.pose.orientation.y = ori.y();
+        ros_odom.pose.pose.orientation.z = ori.z();
+        pub_ros_odom->publish(ros_odom);
     }
+    
+    // Publish ENU Pose
+    ros_pose_enu.header.stamp = ros_odom.header.stamp;
+    ros_pose_enu.pose.position.x = 0; // fixed frame
+    ros_pose_enu.pose.position.y = 0; // fixed frame
+    ros_pose_enu.pose.position.z = 0; // fixed frame
+    ori.setRPY( 0.0, 0.0, 0.0 );
+    ros_pose_enu.pose.orientation.w = ori.w();
+    ros_pose_enu.pose.orientation.x = ori.x();
+    ros_pose_enu.pose.orientation.y = ori.y();
+    ros_pose_enu.pose.orientation.z = ori.z();
+    pub_ros_pose_enu->publish(ros_pose_enu);
 }
 
 /** @brief Publish vehicle commands
@@ -255,7 +304,7 @@ void Px4RosNode::publish_vehicle_command(uint16_t command, float param1, float p
     msg.source_component = 1;
     msg.from_external = true;
     msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-    vehicle_command_publisher_->publish(msg);
+    pub_vehicle_command->publish(msg);
 }
 /** @brief Send a command to Arm the vehicle */
 void Px4RosNode::arm()
@@ -283,7 +332,7 @@ void Px4RosNode::publish_offboard_control_mode()
     msg.attitude = false;
     msg.body_rate = false;
     msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-    offboard_control_mode_publisher_->publish(msg);
+    pub_offboard_control_mode->publish(msg);
 }
 
 /** @brief Publish a trajectory setpoint
@@ -310,8 +359,8 @@ void Px4RosNode::publish_trajectory_setpoint()
                 //msg.position = {NAN, NAN, NAN};
                 //msg.velocity = {-15.0,  0.0, 0.0};
                 theta_traj += theta_traj_dx;
-                float east  = 5.0 * std::cos(theta_traj);
-                float north = 5.0 * std::sin(theta_traj);
+                float east  =  5.0 * std::cos(1.0 * theta_traj);
+                float north =  5.0 * std::sin(2.0 * theta_traj);
                 msg.position = { north, east, NAN };
             }
             else {
@@ -343,7 +392,7 @@ void Px4RosNode::publish_trajectory_setpoint()
     
     msg.yaw = 0.0; // [-PI:PI]
     msg.timestamp = this->get_clock()->now().nanoseconds() / 1000;
-    trajectory_setpoint_publisher_->publish(msg);
+    pub_trajectory_setpoint->publish(msg);
 }
 
 

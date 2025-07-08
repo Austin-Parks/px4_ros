@@ -30,6 +30,7 @@ find_package(tf2_ros REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(geodesy REQUIRED)
 find_package(geographic_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 
 #################
 # Setup targets #
@@ -69,7 +70,7 @@ find_package(geographic_msgs REQUIRED)
 # examples/offboard/offboard_control_srv
 add_executable(px4_ros_node src/px4_ros_node.cpp
 	src/px4_ros_node.hpp)
-ament_target_dependencies(px4_ros_node rclcpp px4_msgs geometry_msgs sensor_msgs tf2 tf2_ros geometry_msgs geodesy geographic_msgs)
+ament_target_dependencies(px4_ros_node rclcpp px4_msgs geometry_msgs sensor_msgs tf2 tf2_ros geometry_msgs geodesy geographic_msgs nav_msgs)
 install(TARGETS px4_ros_node DESTINATION lib/${PROJECT_NAME})
 
 
@@ -78,7 +79,7 @@ install(TARGETS px4_ros_node DESTINATION lib/${PROJECT_NAME})
 ############
 
 # Export information to downstream packages #
-ament_export_dependencies(ament_cmake rclcpp rosidl_default_runtime eigen3_cmake_module Eigen3 px4_msgs geometry_msgs sensor_msgs tf2 tf2_ros geometry_msgs geodesy geographic_msgs)
+ament_export_dependencies(ament_cmake rclcpp rosidl_default_runtime eigen3_cmake_module Eigen3 px4_msgs geometry_msgs sensor_msgs tf2 tf2_ros geometry_msgs geodesy geographic_msgs nav_msgs)
 
 #ament_export_targets(export_frame_transforms HAS_LIBRARY_TARGET)
 
