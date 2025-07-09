@@ -8,10 +8,10 @@
 
 using namespace std::chrono;
 
-void Px4RosNode::init_fmu_sub_pub()
+void Px4RosNode::init_px4_sub_pub()
 {
     auto qos = rclcpp::QoS(rclcpp::SensorDataQoS());
-    
+    ///////////////////////////////////////////////////////////////////////////////////////////// PX4 Sub ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     sub_airspeed_validated           = this->create_subscription<px4_msgs::msg::AirspeedValidated        >("/fmu/out/airspeed_validated_v1",        qos, std::bind(&Px4RosNode::cb_airspeed_validated          , this, std::placeholders::_1));
     sub_arming_check_request         = this->create_subscription<px4_msgs::msg::ArmingCheckRequest       >("/fmu/out/arming_check_request",         qos, std::bind(&Px4RosNode::cb_arming_check_request        , this, std::placeholders::_1));
     sub_battery_status               = this->create_subscription<px4_msgs::msg::BatteryStatus            >("/fmu/out/battery_status",               qos, std::bind(&Px4RosNode::cb_battery_status              , this, std::placeholders::_1));
@@ -37,31 +37,9 @@ void Px4RosNode::init_fmu_sub_pub()
     sub_vehicle_status_v1            = this->create_subscription<px4_msgs::msg::VehicleStatus            >("/fmu/out/vehicle_status_v1",            qos, std::bind(&Px4RosNode::cb_vehicle_status_v1           , this, std::placeholders::_1));
     sub_vtol_vehicle_status          = this->create_subscription<px4_msgs::msg::VtolVehicleStatus        >("/fmu/out/vtol_vehicle_status",          qos, std::bind(&Px4RosNode::cb_vtol_vehicle_status         , this, std::placeholders::_1));
     
-    rpb_airspeed_validated           = this->create_publisher<px4_msgs::msg::AirspeedValidated        >("/px4_ros/fmu/out/airspeed_validated_v1",        10);
-    rpb_arming_check_request         = this->create_publisher<px4_msgs::msg::ArmingCheckRequest       >("/px4_ros/fmu/out/arming_check_request",         10);
-    rpb_battery_status               = this->create_publisher<px4_msgs::msg::BatteryStatus            >("/px4_ros/fmu/out/battery_status",               10);
-    rpb_collision_constraints        = this->create_publisher<px4_msgs::msg::CollisionConstraints     >("/px4_ros/fmu/out/collision_constraints",        10);
-    rpb_estimator_status_flags       = this->create_publisher<px4_msgs::msg::EstimatorStatusFlags     >("/px4_ros/fmu/out/estimator_status_flags",       10);
-    rpb_failsafe_flags               = this->create_publisher<px4_msgs::msg::FailsafeFlags            >("/px4_ros/fmu/out/failsafe_flags",               10);
-    rpb_home_position                = this->create_publisher<px4_msgs::msg::HomePosition             >("/px4_ros/fmu/out/home_position",                10);
-    rpb_manual_control_setpoint      = this->create_publisher<px4_msgs::msg::ManualControlSetpoint    >("/px4_ros/fmu/out/manual_control_setpoint",      10);
-    rpb_message_format_response      = this->create_publisher<px4_msgs::msg::MessageFormatResponse    >("/px4_ros/fmu/out/message_format_response",      10);
-    rpb_mode_completed               = this->create_publisher<px4_msgs::msg::ModeCompleted            >("/px4_ros/fmu/out/mode_completed",               10);
-    rpb_position_setpoint_triplet    = this->create_publisher<px4_msgs::msg::PositionSetpointTriplet  >("/px4_ros/fmu/out/position_setpoint_triplet",    10);
-    rpb_register_ext_component_reply = this->create_publisher<px4_msgs::msg::RegisterExtComponentReply>("/px4_ros/fmu/out/register_ext_component_reply", 10);
-    rpb_sensor_combined              = this->create_publisher<px4_msgs::msg::SensorCombined           >("/px4_ros/fmu/out/sensor_combined",              10);
-    rpb_timesync_status              = this->create_publisher<px4_msgs::msg::TimesyncStatus           >("/px4_ros/fmu/out/timesync_status",              10);
-    rpb_vehicle_attitude             = this->create_publisher<px4_msgs::msg::VehicleAttitude          >("/px4_ros/fmu/out/vehicle_attitude",             10);
-    rpb_vehicle_command_ack          = this->create_publisher<px4_msgs::msg::VehicleCommandAck        >("/px4_ros/fmu/out/vehicle_command_ack",          10);
-    rpb_vehicle_control_mode         = this->create_publisher<px4_msgs::msg::VehicleControlMode       >("/px4_ros/fmu/out/vehicle_control_mode",         10);
-    rpb_vehicle_global_position      = this->create_publisher<px4_msgs::msg::VehicleGlobalPosition    >("/px4_ros/fmu/out/vehicle_global_position",      10);
-    rpb_vehicle_gps_position         = this->create_publisher<px4_msgs::msg::SensorGps                >("/px4_ros/fmu/out/vehicle_gps_position",         10);
-    rpb_vehicle_land_detected        = this->create_publisher<px4_msgs::msg::VehicleLandDetected      >("/px4_ros/fmu/out/vehicle_land_detected",        10);
-    rpb_vehicle_local_position       = this->create_publisher<px4_msgs::msg::VehicleLocalPosition     >("/px4_ros/fmu/out/vehicle_local_position",       10);
-    rpb_vehicle_odometry             = this->create_publisher<px4_msgs::msg::VehicleOdometry          >("/px4_ros/fmu/out/vehicle_odometry",             10);
-    rpb_vehicle_status_v1            = this->create_publisher<px4_msgs::msg::VehicleStatus            >("/px4_ros/fmu/out/vehicle_status_v1",            10);
-    rpb_vtol_vehicle_status          = this->create_publisher<px4_msgs::msg::VtolVehicleStatus        >("/px4_ros/fmu/out/vtol_vehicle_status",          10);
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////// PX4 Re-Publish-Sub (for rqt compatibility) /////////////////////////////////////////////////////////////
+    if(rqtrepub) rqtrepub_init();
+    ////////////////////////////////////////////////////// Publish PX4 Offboard Control ////////////////////////////////////////////////////////////////////////////////
 	pub_actuator_motors                    = this->create_publisher<px4_msgs::msg::ActuatorMotors                  >("/fmu/in/actuator_motors",                    qos);
 	pub_actuator_servos                    = this->create_publisher<px4_msgs::msg::ActuatorServos                  >("/fmu/in/actuator_servos",                    qos);
 	pub_arming_check_reply_v1              = this->create_publisher<px4_msgs::msg::ArmingCheckReply                >("/fmu/in/arming_check_reply_v1",              qos);
@@ -93,7 +71,62 @@ void Px4RosNode::init_fmu_sub_pub()
 	pub_vehicle_thrust_setpoint            = this->create_publisher<px4_msgs::msg::VehicleThrustSetpoint           >("/fmu/in/vehicle_thrust_setpoint",            qos);
 	pub_vehicle_torque_setpoint            = this->create_publisher<px4_msgs::msg::VehicleTorqueSetpoint           >("/fmu/in/vehicle_torque_setpoint",            qos);
 	pub_vehicle_visual_odometry            = this->create_publisher<px4_msgs::msg::VehicleOdometry                 >("/fmu/in/vehicle_visual_odometry",            qos);
-    
+}
+
+void Px4RosNode::rqtrepub_init()
+{
+    rpb_airspeed_validated           = this->create_publisher<px4_msgs::msg::AirspeedValidated        >("/px4_ros/fmu/out/airspeed_validated_v1",        10);
+    rpb_arming_check_request         = this->create_publisher<px4_msgs::msg::ArmingCheckRequest       >("/px4_ros/fmu/out/arming_check_request",         10);
+    rpb_battery_status               = this->create_publisher<px4_msgs::msg::BatteryStatus            >("/px4_ros/fmu/out/battery_status",               10);
+    rpb_collision_constraints        = this->create_publisher<px4_msgs::msg::CollisionConstraints     >("/px4_ros/fmu/out/collision_constraints",        10);
+    rpb_estimator_status_flags       = this->create_publisher<px4_msgs::msg::EstimatorStatusFlags     >("/px4_ros/fmu/out/estimator_status_flags",       10);
+    rpb_failsafe_flags               = this->create_publisher<px4_msgs::msg::FailsafeFlags            >("/px4_ros/fmu/out/failsafe_flags",               10);
+    rpb_home_position                = this->create_publisher<px4_msgs::msg::HomePosition             >("/px4_ros/fmu/out/home_position",                10);
+    rpb_manual_control_setpoint      = this->create_publisher<px4_msgs::msg::ManualControlSetpoint    >("/px4_ros/fmu/out/manual_control_setpoint",      10);
+    rpb_message_format_response      = this->create_publisher<px4_msgs::msg::MessageFormatResponse    >("/px4_ros/fmu/out/message_format_response",      10);
+    rpb_mode_completed               = this->create_publisher<px4_msgs::msg::ModeCompleted            >("/px4_ros/fmu/out/mode_completed",               10);
+    rpb_position_setpoint_triplet    = this->create_publisher<px4_msgs::msg::PositionSetpointTriplet  >("/px4_ros/fmu/out/position_setpoint_triplet",    10);
+    rpb_register_ext_component_reply = this->create_publisher<px4_msgs::msg::RegisterExtComponentReply>("/px4_ros/fmu/out/register_ext_component_reply", 10);
+    rpb_sensor_combined              = this->create_publisher<px4_msgs::msg::SensorCombined           >("/px4_ros/fmu/out/sensor_combined",              10);
+    rpb_timesync_status              = this->create_publisher<px4_msgs::msg::TimesyncStatus           >("/px4_ros/fmu/out/timesync_status",              10);
+    rpb_vehicle_attitude             = this->create_publisher<px4_msgs::msg::VehicleAttitude          >("/px4_ros/fmu/out/vehicle_attitude",             10);
+    rpb_vehicle_command_ack          = this->create_publisher<px4_msgs::msg::VehicleCommandAck        >("/px4_ros/fmu/out/vehicle_command_ack",          10);
+    rpb_vehicle_control_mode         = this->create_publisher<px4_msgs::msg::VehicleControlMode       >("/px4_ros/fmu/out/vehicle_control_mode",         10);
+    rpb_vehicle_global_position      = this->create_publisher<px4_msgs::msg::VehicleGlobalPosition    >("/px4_ros/fmu/out/vehicle_global_position",      10);
+    rpb_vehicle_gps_position         = this->create_publisher<px4_msgs::msg::SensorGps                >("/px4_ros/fmu/out/vehicle_gps_position",         10);
+    rpb_vehicle_land_detected        = this->create_publisher<px4_msgs::msg::VehicleLandDetected      >("/px4_ros/fmu/out/vehicle_land_detected",        10);
+    rpb_vehicle_local_position       = this->create_publisher<px4_msgs::msg::VehicleLocalPosition     >("/px4_ros/fmu/out/vehicle_local_position",       10);
+    rpb_vehicle_odometry             = this->create_publisher<px4_msgs::msg::VehicleOdometry          >("/px4_ros/fmu/out/vehicle_odometry",             10);
+    rpb_vehicle_status_v1            = this->create_publisher<px4_msgs::msg::VehicleStatus            >("/px4_ros/fmu/out/vehicle_status_v1",            10);
+    rpb_vtol_vehicle_status          = this->create_publisher<px4_msgs::msg::VtolVehicleStatus        >("/px4_ros/fmu/out/vtol_vehicle_status",          10);
+}
+
+void Px4RosNode::rqtrepub_reset()
+{
+    rpb_airspeed_validated          .reset();
+    rpb_arming_check_request        .reset();
+    rpb_battery_status              .reset();
+    rpb_collision_constraints       .reset();
+    rpb_estimator_status_flags      .reset();
+    rpb_failsafe_flags              .reset();
+    rpb_home_position               .reset();
+    rpb_manual_control_setpoint     .reset();
+    rpb_message_format_response     .reset();
+    rpb_mode_completed              .reset();
+    rpb_position_setpoint_triplet   .reset();
+    rpb_register_ext_component_reply.reset();
+    rpb_sensor_combined             .reset();
+    rpb_timesync_status             .reset();
+    rpb_vehicle_attitude            .reset();
+    rpb_vehicle_command_ack         .reset();
+    rpb_vehicle_control_mode        .reset();
+    rpb_vehicle_global_position     .reset();
+    rpb_vehicle_gps_position        .reset();
+    rpb_vehicle_land_detected       .reset();
+    rpb_vehicle_local_position      .reset();
+    rpb_vehicle_odometry            .reset();
+    rpb_vehicle_status_v1           .reset();
+    rpb_vtol_vehicle_status         .reset();
 }
 
 Px4RosNode::Px4RosNode() : Node("px4_ros_node")
@@ -105,17 +138,24 @@ Px4RosNode::Px4RosNode() : Node("px4_ros_node")
     px4_catt_good = false;
     px4_geo_pos_good = false;
     tf_good = false;
-    
     ctrl_en  = true;
     ctrl_pos = false;
     ctrl_vel = true;
     t_state = 0;
     
-    init_fmu_sub_pub();
+    this->declare_parameter("rqtrepub", false);
+    rqtrepub = this->get_parameter("rqtrepub").as_bool();
+    //cbh_on_set_parameters = this->add_on_set_parameters_callback(std::bind(&Px4RosNode::cb_on_set_parameters, this, std::placeholders::_1));
+    // if we ever need to push param changes back to the ros2 network:
+    // std::vector<rclcpp::Parameter> all_new_parameters{rclcpp::Parameter("param_name", "value")};
+    // this->set_parameters(all_new_parameters);
     
-    pub_ros_pose_enu               = this->create_publisher<geometry_msgs::msg::PoseStamped>("/px4ros/out/vehicle_local_position",        10);
-    pub_ros_odom                   = this->create_publisher<nav_msgs::msg::Odometry        >("/px4ros/out/odom",                          10);
-    pub_ros_dbg_pose               = this->create_publisher<geometry_msgs::msg::PoseStamped>("/px4ros/out/dbg_pose",                      10);
+    
+    init_px4_sub_pub();
+    
+    pub_ros_pose_enu               = this->create_publisher<geometry_msgs::msg::PoseStamped>("/px4ros/out/vehicle_local_position", 10);
+    pub_ros_odom                   = this->create_publisher<nav_msgs::msg::Odometry        >("/px4ros/out/odom",                   10);
+    pub_ros_dbg_pose               = this->create_publisher<geometry_msgs::msg::PoseStamped>("/px4ros/out/dbg_pose",               10);
     
     tf_local_utm.header.frame_id   = "utm_origin";
     tf_local_utm.child_frame_id    = "local_enu_origin";
@@ -153,6 +193,52 @@ Px4RosNode::Px4RosNode() : Node("px4_ros_node")
     // run spin_main() at 100 Hz
     timer_ = this->create_wall_timer(10ms, std::bind(&Px4RosNode::spin_main, this) );
 }
+
+void Px4RosNode::cb_airspeed_validated          (const px4_msgs::msg::AirspeedValidated::SharedPtr         msg){ if(rqtrepub) rpb_airspeed_validated          ->publish(*msg); }
+void Px4RosNode::cb_arming_check_request        (const px4_msgs::msg::ArmingCheckRequest::SharedPtr        msg){ if(rqtrepub) rpb_arming_check_request        ->publish(*msg); }
+void Px4RosNode::cb_battery_status              (const px4_msgs::msg::BatteryStatus::SharedPtr             msg){ if(rqtrepub) rpb_battery_status              ->publish(*msg); }
+void Px4RosNode::cb_collision_constraints       (const px4_msgs::msg::CollisionConstraints::SharedPtr      msg){ if(rqtrepub) rpb_collision_constraints       ->publish(*msg); }
+void Px4RosNode::cb_estimator_status_flags      (const px4_msgs::msg::EstimatorStatusFlags::SharedPtr      msg){ if(rqtrepub) rpb_estimator_status_flags      ->publish(*msg); }
+void Px4RosNode::cb_failsafe_flags              (const px4_msgs::msg::FailsafeFlags::SharedPtr             msg){ if(rqtrepub) rpb_failsafe_flags              ->publish(*msg); }
+void Px4RosNode::cb_home_position               (const px4_msgs::msg::HomePosition::SharedPtr              msg){ if(rqtrepub) rpb_home_position               ->publish(*msg); if(!px4_home_pos_good && px4_cpos_good && px4_catt_good) calc_utm_tf(msg); }
+void Px4RosNode::cb_manual_control_setpoint     (const px4_msgs::msg::ManualControlSetpoint::SharedPtr     msg){ if(rqtrepub) rpb_manual_control_setpoint     ->publish(*msg); }
+void Px4RosNode::cb_message_format_response     (const px4_msgs::msg::MessageFormatResponse::SharedPtr     msg){ if(rqtrepub) rpb_message_format_response     ->publish(*msg); }
+void Px4RosNode::cb_mode_completed              (const px4_msgs::msg::ModeCompleted::SharedPtr             msg){ if(rqtrepub) rpb_mode_completed              ->publish(*msg); }
+void Px4RosNode::cb_position_setpoint_triplet   (const px4_msgs::msg::PositionSetpointTriplet::SharedPtr   msg){ if(rqtrepub) rpb_position_setpoint_triplet   ->publish(*msg); }
+void Px4RosNode::cb_register_ext_component_reply(const px4_msgs::msg::RegisterExtComponentReply::SharedPtr msg){ if(rqtrepub) rpb_register_ext_component_reply->publish(*msg); }
+void Px4RosNode::cb_sensor_combined             (const px4_msgs::msg::SensorCombined::SharedPtr            msg){ if(rqtrepub) rpb_sensor_combined             ->publish(*msg); }
+void Px4RosNode::cb_timesync_status             (const px4_msgs::msg::TimesyncStatus::SharedPtr            msg){ if(rqtrepub) rpb_timesync_status             ->publish(*msg); }
+void Px4RosNode::cb_vehicle_attitude            (const px4_msgs::msg::VehicleAttitude::SharedPtr           msg){ if(rqtrepub) rpb_vehicle_attitude            ->publish(*msg); px4_catt = *msg; px4_catt_good = true;}
+void Px4RosNode::cb_vehicle_command_ack         (const px4_msgs::msg::VehicleCommandAck::SharedPtr         msg){ if(rqtrepub) rpb_vehicle_command_ack         ->publish(*msg); }
+void Px4RosNode::cb_vehicle_control_mode        (const px4_msgs::msg::VehicleControlMode::SharedPtr        msg){ if(rqtrepub) rpb_vehicle_control_mode        ->publish(*msg); }
+void Px4RosNode::cb_vehicle_global_position     (const px4_msgs::msg::VehicleGlobalPosition::SharedPtr     msg){ if(rqtrepub) rpb_vehicle_global_position     ->publish(*msg); px4_geo_pos = *msg; px4_geo_pos_good = true; }
+void Px4RosNode::cb_vehicle_gps_position        (const px4_msgs::msg::SensorGps::SharedPtr                 msg){ if(rqtrepub) rpb_vehicle_gps_position        ->publish(*msg); }
+void Px4RosNode::cb_vehicle_land_detected       (const px4_msgs::msg::VehicleLandDetected::SharedPtr       msg){ if(rqtrepub) rpb_vehicle_land_detected       ->publish(*msg); }
+void Px4RosNode::cb_vehicle_local_position      (const px4_msgs::msg::VehicleLocalPosition::SharedPtr      msg){ if(rqtrepub) rpb_vehicle_local_position      ->publish(*msg); px4_cpos = *msg; px4_cpos_good = true; }
+void Px4RosNode::cb_vehicle_odometry            (const px4_msgs::msg::VehicleOdometry::SharedPtr           msg){ if(rqtrepub) rpb_vehicle_odometry            ->publish(*msg); grab_odom(msg); }
+void Px4RosNode::cb_vehicle_status_v1           (const px4_msgs::msg::VehicleStatus::SharedPtr             msg){ if(rqtrepub) rpb_vehicle_status_v1           ->publish(*msg); px4_status = *msg; px4_status_good = true; }
+void Px4RosNode::cb_vtol_vehicle_status         (const px4_msgs::msg::VtolVehicleStatus::SharedPtr         msg){ if(rqtrepub) rpb_vtol_vehicle_status         ->publish(*msg); }
+
+rcl_interfaces::msg::SetParametersResult Px4RosNode::cb_on_set_parameters(const std::vector<rclcpp::Parameter> &param) {
+    rcl_interfaces::msg::SetParametersResult res;
+    for (auto p = param.begin(); p != param.end(); ++p) {
+        if ( p->get_name() == "rqtrepub" ) {
+            rqtrepub = p->as_bool();
+            if(rqtrepub)
+                rqtrepub_init();
+            else
+                rqtrepub_reset();
+        }
+        
+        RCLCPP_INFO(
+            this->get_logger(), "cb: Received an update to parameter \"%s\" of type %s: \"%u\"",
+            p->get_name().c_str(),
+            p->get_type_name().c_str(),
+            p->as_bool());
+    }
+    res.successful = true;
+    return res;
+};
 
 int Px4RosNode::spin_main()
 {

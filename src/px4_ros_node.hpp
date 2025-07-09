@@ -63,6 +63,7 @@
 #include <stdint.h>
 #include <cmath>
 
+#include <rcl_interfaces/msg/set_parameters_result.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/convert.hpp>
@@ -71,12 +72,9 @@
 
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/point_stamped.hpp>
-
 #include <geodesy/utm.h>
 #include <geodesy/wgs84.h>
-
 #include <geographic_msgs/msg/geo_point.h>
-
 #include <nav_msgs/msg/odometry.hpp>
 
 using namespace std::chrono;
@@ -90,56 +88,87 @@ public:
     void disarm();
     
 private:
-    ///////////////////////////////////////////// PX4 Sub  ////////////////////////////////////////////////////
-    rclcpp::Subscription<px4_msgs::msg::AirspeedValidated            >::SharedPtr sub_airspeed_validated;
-    rclcpp::Subscription<px4_msgs::msg::ArmingCheckRequest           >::SharedPtr sub_arming_check_request;
-    rclcpp::Subscription<px4_msgs::msg::BatteryStatus                >::SharedPtr sub_battery_status;
-    rclcpp::Subscription<px4_msgs::msg::CollisionConstraints         >::SharedPtr sub_collision_constraints;
-    rclcpp::Subscription<px4_msgs::msg::EstimatorStatusFlags         >::SharedPtr sub_estimator_status_flags;
-    rclcpp::Subscription<px4_msgs::msg::FailsafeFlags                >::SharedPtr sub_failsafe_flags;
-    rclcpp::Subscription<px4_msgs::msg::HomePosition                 >::SharedPtr sub_home_position;
-    rclcpp::Subscription<px4_msgs::msg::ManualControlSetpoint        >::SharedPtr sub_manual_control_setpoint;
-    rclcpp::Subscription<px4_msgs::msg::MessageFormatResponse        >::SharedPtr sub_message_format_response;
-    rclcpp::Subscription<px4_msgs::msg::ModeCompleted                >::SharedPtr sub_mode_completed;
-    rclcpp::Subscription<px4_msgs::msg::PositionSetpointTriplet      >::SharedPtr sub_position_setpoint_triplet;
-    rclcpp::Subscription<px4_msgs::msg::RegisterExtComponentReply    >::SharedPtr sub_register_ext_component_reply;
-    rclcpp::Subscription<px4_msgs::msg::SensorCombined               >::SharedPtr sub_sensor_combined;
-    rclcpp::Subscription<px4_msgs::msg::TimesyncStatus               >::SharedPtr sub_timesync_status;
-    rclcpp::Subscription<px4_msgs::msg::VehicleAttitude              >::SharedPtr sub_vehicle_attitude;
-    rclcpp::Subscription<px4_msgs::msg::VehicleCommandAck            >::SharedPtr sub_vehicle_command_ack;
-    rclcpp::Subscription<px4_msgs::msg::VehicleControlMode           >::SharedPtr sub_vehicle_control_mode;
-    rclcpp::Subscription<px4_msgs::msg::VehicleGlobalPosition        >::SharedPtr sub_vehicle_global_position;
-    rclcpp::Subscription<px4_msgs::msg::SensorGps                    >::SharedPtr sub_vehicle_gps_position;
-    rclcpp::Subscription<px4_msgs::msg::VehicleLandDetected          >::SharedPtr sub_vehicle_land_detected;
-    rclcpp::Subscription<px4_msgs::msg::VehicleLocalPosition         >::SharedPtr sub_vehicle_local_position;
-    rclcpp::Subscription<px4_msgs::msg::VehicleOdometry              >::SharedPtr sub_vehicle_odometry;
-    rclcpp::Subscription<px4_msgs::msg::VehicleStatus                >::SharedPtr sub_vehicle_status_v1;
-    rclcpp::Subscription<px4_msgs::msg::VtolVehicleStatus            >::SharedPtr sub_vtol_vehicle_status;
+    // Params
+    bool rqtrepub;
+    OnSetParametersCallbackHandle::SharedPtr cbh_on_set_parameters;
+    rcl_interfaces::msg::SetParametersResult  cb_on_set_parameters(const std::vector<rclcpp::Parameter> &param);
+    ///////////////////////////////////////////// PX4 Sub ////////////////////////////////////////////////////
+    rclcpp::Subscription<px4_msgs::msg::AirspeedValidated        >::SharedPtr sub_airspeed_validated;
+    rclcpp::Subscription<px4_msgs::msg::ArmingCheckRequest       >::SharedPtr sub_arming_check_request;
+    rclcpp::Subscription<px4_msgs::msg::BatteryStatus            >::SharedPtr sub_battery_status;
+    rclcpp::Subscription<px4_msgs::msg::CollisionConstraints     >::SharedPtr sub_collision_constraints;
+    rclcpp::Subscription<px4_msgs::msg::EstimatorStatusFlags     >::SharedPtr sub_estimator_status_flags;
+    rclcpp::Subscription<px4_msgs::msg::FailsafeFlags            >::SharedPtr sub_failsafe_flags;
+    rclcpp::Subscription<px4_msgs::msg::HomePosition             >::SharedPtr sub_home_position;
+    rclcpp::Subscription<px4_msgs::msg::ManualControlSetpoint    >::SharedPtr sub_manual_control_setpoint;
+    rclcpp::Subscription<px4_msgs::msg::MessageFormatResponse    >::SharedPtr sub_message_format_response;
+    rclcpp::Subscription<px4_msgs::msg::ModeCompleted            >::SharedPtr sub_mode_completed;
+    rclcpp::Subscription<px4_msgs::msg::PositionSetpointTriplet  >::SharedPtr sub_position_setpoint_triplet;
+    rclcpp::Subscription<px4_msgs::msg::RegisterExtComponentReply>::SharedPtr sub_register_ext_component_reply;
+    rclcpp::Subscription<px4_msgs::msg::SensorCombined           >::SharedPtr sub_sensor_combined;
+    rclcpp::Subscription<px4_msgs::msg::TimesyncStatus           >::SharedPtr sub_timesync_status;
+    rclcpp::Subscription<px4_msgs::msg::VehicleAttitude          >::SharedPtr sub_vehicle_attitude;
+    rclcpp::Subscription<px4_msgs::msg::VehicleCommandAck        >::SharedPtr sub_vehicle_command_ack;
+    rclcpp::Subscription<px4_msgs::msg::VehicleControlMode       >::SharedPtr sub_vehicle_control_mode;
+    rclcpp::Subscription<px4_msgs::msg::VehicleGlobalPosition    >::SharedPtr sub_vehicle_global_position;
+    rclcpp::Subscription<px4_msgs::msg::SensorGps                >::SharedPtr sub_vehicle_gps_position;
+    rclcpp::Subscription<px4_msgs::msg::VehicleLandDetected      >::SharedPtr sub_vehicle_land_detected;
+    rclcpp::Subscription<px4_msgs::msg::VehicleLocalPosition     >::SharedPtr sub_vehicle_local_position;
+    rclcpp::Subscription<px4_msgs::msg::VehicleOdometry          >::SharedPtr sub_vehicle_odometry;
+    rclcpp::Subscription<px4_msgs::msg::VehicleStatus            >::SharedPtr sub_vehicle_status_v1;
+    rclcpp::Subscription<px4_msgs::msg::VtolVehicleStatus        >::SharedPtr sub_vtol_vehicle_status;
+    
+    void cb_airspeed_validated          (const px4_msgs::msg::AirspeedValidated::SharedPtr         msg);
+    void cb_arming_check_request        (const px4_msgs::msg::ArmingCheckRequest::SharedPtr        msg);
+    void cb_battery_status              (const px4_msgs::msg::BatteryStatus::SharedPtr             msg);
+    void cb_collision_constraints       (const px4_msgs::msg::CollisionConstraints::SharedPtr      msg);
+    void cb_estimator_status_flags      (const px4_msgs::msg::EstimatorStatusFlags::SharedPtr      msg);
+    void cb_failsafe_flags              (const px4_msgs::msg::FailsafeFlags::SharedPtr             msg);
+    void cb_home_position               (const px4_msgs::msg::HomePosition::SharedPtr              msg);
+    void cb_manual_control_setpoint     (const px4_msgs::msg::ManualControlSetpoint::SharedPtr     msg);
+    void cb_message_format_response     (const px4_msgs::msg::MessageFormatResponse::SharedPtr     msg);
+    void cb_mode_completed              (const px4_msgs::msg::ModeCompleted::SharedPtr             msg);
+    void cb_position_setpoint_triplet   (const px4_msgs::msg::PositionSetpointTriplet::SharedPtr   msg);
+    void cb_register_ext_component_reply(const px4_msgs::msg::RegisterExtComponentReply::SharedPtr msg);
+    void cb_sensor_combined             (const px4_msgs::msg::SensorCombined::SharedPtr            msg);
+    void cb_timesync_status             (const px4_msgs::msg::TimesyncStatus::SharedPtr            msg);
+    void cb_vehicle_attitude            (const px4_msgs::msg::VehicleAttitude::SharedPtr           msg);
+    void cb_vehicle_command_ack         (const px4_msgs::msg::VehicleCommandAck::SharedPtr         msg);
+    void cb_vehicle_control_mode        (const px4_msgs::msg::VehicleControlMode::SharedPtr        msg);
+    void cb_vehicle_global_position     (const px4_msgs::msg::VehicleGlobalPosition::SharedPtr     msg);
+    void cb_vehicle_gps_position        (const px4_msgs::msg::SensorGps::SharedPtr                 msg);
+    void cb_vehicle_land_detected       (const px4_msgs::msg::VehicleLandDetected::SharedPtr       msg);
+    void cb_vehicle_local_position      (const px4_msgs::msg::VehicleLocalPosition::SharedPtr      msg);
+    void cb_vehicle_odometry            (const px4_msgs::msg::VehicleOdometry::SharedPtr           msg);
+    void cb_vehicle_status_v1           (const px4_msgs::msg::VehicleStatus::SharedPtr             msg);
+    void cb_vtol_vehicle_status         (const px4_msgs::msg::VtolVehicleStatus::SharedPtr         msg);
+    
     ////////////////////////////////////////// PX4 Re-Publish //////////////////////////////////////////////////
-    rclcpp::Publisher<px4_msgs::msg::AirspeedValidated               >::SharedPtr rpb_airspeed_validated;
-    rclcpp::Publisher<px4_msgs::msg::ArmingCheckRequest              >::SharedPtr rpb_arming_check_request;
-    rclcpp::Publisher<px4_msgs::msg::BatteryStatus                   >::SharedPtr rpb_battery_status;
-    rclcpp::Publisher<px4_msgs::msg::CollisionConstraints            >::SharedPtr rpb_collision_constraints;
-    rclcpp::Publisher<px4_msgs::msg::EstimatorStatusFlags            >::SharedPtr rpb_estimator_status_flags;
-    rclcpp::Publisher<px4_msgs::msg::FailsafeFlags                   >::SharedPtr rpb_failsafe_flags;
-    rclcpp::Publisher<px4_msgs::msg::HomePosition                    >::SharedPtr rpb_home_position;
-    rclcpp::Publisher<px4_msgs::msg::ManualControlSetpoint           >::SharedPtr rpb_manual_control_setpoint;
-    rclcpp::Publisher<px4_msgs::msg::MessageFormatResponse           >::SharedPtr rpb_message_format_response;
-    rclcpp::Publisher<px4_msgs::msg::ModeCompleted                   >::SharedPtr rpb_mode_completed;
-    rclcpp::Publisher<px4_msgs::msg::PositionSetpointTriplet         >::SharedPtr rpb_position_setpoint_triplet;
-    rclcpp::Publisher<px4_msgs::msg::RegisterExtComponentReply       >::SharedPtr rpb_register_ext_component_reply;
-    rclcpp::Publisher<px4_msgs::msg::SensorCombined                  >::SharedPtr rpb_sensor_combined;
-    rclcpp::Publisher<px4_msgs::msg::TimesyncStatus                  >::SharedPtr rpb_timesync_status;
-    rclcpp::Publisher<px4_msgs::msg::VehicleAttitude                 >::SharedPtr rpb_vehicle_attitude;
-    rclcpp::Publisher<px4_msgs::msg::VehicleCommandAck               >::SharedPtr rpb_vehicle_command_ack;
-    rclcpp::Publisher<px4_msgs::msg::VehicleControlMode              >::SharedPtr rpb_vehicle_control_mode;
-    rclcpp::Publisher<px4_msgs::msg::VehicleGlobalPosition           >::SharedPtr rpb_vehicle_global_position;
-    rclcpp::Publisher<px4_msgs::msg::SensorGps                       >::SharedPtr rpb_vehicle_gps_position;
-    rclcpp::Publisher<px4_msgs::msg::VehicleLandDetected             >::SharedPtr rpb_vehicle_land_detected;
-    rclcpp::Publisher<px4_msgs::msg::VehicleLocalPosition            >::SharedPtr rpb_vehicle_local_position;
-    rclcpp::Publisher<px4_msgs::msg::VehicleOdometry                 >::SharedPtr rpb_vehicle_odometry;
-    rclcpp::Publisher<px4_msgs::msg::VehicleStatus                   >::SharedPtr rpb_vehicle_status_v1;
-    rclcpp::Publisher<px4_msgs::msg::VtolVehicleStatus               >::SharedPtr rpb_vtol_vehicle_status;
+    rclcpp::Publisher<px4_msgs::msg::AirspeedValidated        >::SharedPtr rpb_airspeed_validated;
+    rclcpp::Publisher<px4_msgs::msg::ArmingCheckRequest       >::SharedPtr rpb_arming_check_request;
+    rclcpp::Publisher<px4_msgs::msg::BatteryStatus            >::SharedPtr rpb_battery_status;
+    rclcpp::Publisher<px4_msgs::msg::CollisionConstraints     >::SharedPtr rpb_collision_constraints;
+    rclcpp::Publisher<px4_msgs::msg::EstimatorStatusFlags     >::SharedPtr rpb_estimator_status_flags;
+    rclcpp::Publisher<px4_msgs::msg::FailsafeFlags            >::SharedPtr rpb_failsafe_flags;
+    rclcpp::Publisher<px4_msgs::msg::HomePosition             >::SharedPtr rpb_home_position;
+    rclcpp::Publisher<px4_msgs::msg::ManualControlSetpoint    >::SharedPtr rpb_manual_control_setpoint;
+    rclcpp::Publisher<px4_msgs::msg::MessageFormatResponse    >::SharedPtr rpb_message_format_response;
+    rclcpp::Publisher<px4_msgs::msg::ModeCompleted            >::SharedPtr rpb_mode_completed;
+    rclcpp::Publisher<px4_msgs::msg::PositionSetpointTriplet  >::SharedPtr rpb_position_setpoint_triplet;
+    rclcpp::Publisher<px4_msgs::msg::RegisterExtComponentReply>::SharedPtr rpb_register_ext_component_reply;
+    rclcpp::Publisher<px4_msgs::msg::SensorCombined           >::SharedPtr rpb_sensor_combined;
+    rclcpp::Publisher<px4_msgs::msg::TimesyncStatus           >::SharedPtr rpb_timesync_status;
+    rclcpp::Publisher<px4_msgs::msg::VehicleAttitude          >::SharedPtr rpb_vehicle_attitude;
+    rclcpp::Publisher<px4_msgs::msg::VehicleCommandAck        >::SharedPtr rpb_vehicle_command_ack;
+    rclcpp::Publisher<px4_msgs::msg::VehicleControlMode       >::SharedPtr rpb_vehicle_control_mode;
+    rclcpp::Publisher<px4_msgs::msg::VehicleGlobalPosition    >::SharedPtr rpb_vehicle_global_position;
+    rclcpp::Publisher<px4_msgs::msg::SensorGps                >::SharedPtr rpb_vehicle_gps_position;
+    rclcpp::Publisher<px4_msgs::msg::VehicleLandDetected      >::SharedPtr rpb_vehicle_land_detected;
+    rclcpp::Publisher<px4_msgs::msg::VehicleLocalPosition     >::SharedPtr rpb_vehicle_local_position;
+    rclcpp::Publisher<px4_msgs::msg::VehicleOdometry          >::SharedPtr rpb_vehicle_odometry;
+    rclcpp::Publisher<px4_msgs::msg::VehicleStatus            >::SharedPtr rpb_vehicle_status_v1;
+    rclcpp::Publisher<px4_msgs::msg::VtolVehicleStatus        >::SharedPtr rpb_vtol_vehicle_status;
+    
     //////////////////////////////////////////// Publish PX4 Offboard Control ///////////////////////////////////
     rclcpp::Publisher<px4_msgs::msg::ActuatorMotors                  >::SharedPtr pub_actuator_motors;
     rclcpp::Publisher<px4_msgs::msg::ActuatorServos                  >::SharedPtr pub_actuator_servos;
@@ -188,9 +217,9 @@ private:
     bool px4_geo_pos_good;
     bool px4_status_good;
     
-    rclcpp::Publisher<geometry_msgs::msg::PoseStamped                >::SharedPtr pub_ros_pose_enu;
-    rclcpp::Publisher<geometry_msgs::msg::PoseStamped                >::SharedPtr pub_ros_dbg_pose;
-    rclcpp::Publisher<nav_msgs::msg::Odometry                        >::SharedPtr pub_ros_odom;
+    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_ros_pose_enu;
+    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_ros_dbg_pose;
+    rclcpp::Publisher<nav_msgs::msg::Odometry        >::SharedPtr pub_ros_odom;
     
     geometry_msgs::msg::PoseStamped ros_pose_enu;
     geometry_msgs::msg::PoseStamped ros_dbg_pose;
@@ -212,36 +241,15 @@ private:
     double theta_traj;
     double theta_traj_dx;
     
-    void cb_airspeed_validated          (const px4_msgs::msg::AirspeedValidated::SharedPtr         msg){ rpb_airspeed_validated          ->publish(*msg); }
-    void cb_arming_check_request        (const px4_msgs::msg::ArmingCheckRequest::SharedPtr        msg){ rpb_arming_check_request        ->publish(*msg); }
-    void cb_battery_status              (const px4_msgs::msg::BatteryStatus::SharedPtr             msg){ rpb_battery_status              ->publish(*msg); }
-    void cb_collision_constraints       (const px4_msgs::msg::CollisionConstraints::SharedPtr      msg){ rpb_collision_constraints       ->publish(*msg); }
-    void cb_estimator_status_flags      (const px4_msgs::msg::EstimatorStatusFlags::SharedPtr      msg){ rpb_estimator_status_flags      ->publish(*msg); }
-    void cb_failsafe_flags              (const px4_msgs::msg::FailsafeFlags::SharedPtr             msg){ rpb_failsafe_flags              ->publish(*msg); }
-    void cb_home_position               (const px4_msgs::msg::HomePosition::SharedPtr              msg){ rpb_home_position               ->publish(*msg); if(!px4_home_pos_good && px4_cpos_good && px4_catt_good) calc_utm_tf(msg); }
-    void cb_manual_control_setpoint     (const px4_msgs::msg::ManualControlSetpoint::SharedPtr     msg){ rpb_manual_control_setpoint     ->publish(*msg); }
-    void cb_message_format_response     (const px4_msgs::msg::MessageFormatResponse::SharedPtr     msg){ rpb_message_format_response     ->publish(*msg); }
-    void cb_mode_completed              (const px4_msgs::msg::ModeCompleted::SharedPtr             msg){ rpb_mode_completed              ->publish(*msg); }
-    void cb_position_setpoint_triplet   (const px4_msgs::msg::PositionSetpointTriplet::SharedPtr   msg){ rpb_position_setpoint_triplet   ->publish(*msg); }
-    void cb_register_ext_component_reply(const px4_msgs::msg::RegisterExtComponentReply::SharedPtr msg){ rpb_register_ext_component_reply->publish(*msg); }
-    void cb_sensor_combined             (const px4_msgs::msg::SensorCombined::SharedPtr            msg){ rpb_sensor_combined             ->publish(*msg); }
-    void cb_timesync_status             (const px4_msgs::msg::TimesyncStatus::SharedPtr            msg){ rpb_timesync_status             ->publish(*msg); }
-    void cb_vehicle_attitude            (const px4_msgs::msg::VehicleAttitude::SharedPtr           msg){ rpb_vehicle_attitude            ->publish(*msg); px4_catt = *msg; px4_catt_good = true;}
-    void cb_vehicle_command_ack         (const px4_msgs::msg::VehicleCommandAck::SharedPtr         msg){ rpb_vehicle_command_ack         ->publish(*msg); }
-    void cb_vehicle_control_mode        (const px4_msgs::msg::VehicleControlMode::SharedPtr        msg){ rpb_vehicle_control_mode        ->publish(*msg); }
-    void cb_vehicle_global_position     (const px4_msgs::msg::VehicleGlobalPosition::SharedPtr     msg){ rpb_vehicle_global_position     ->publish(*msg); px4_geo_pos = *msg; px4_geo_pos_good = true; }
-    void cb_vehicle_gps_position        (const px4_msgs::msg::SensorGps::SharedPtr                 msg){ rpb_vehicle_gps_position        ->publish(*msg); }
-    void cb_vehicle_land_detected       (const px4_msgs::msg::VehicleLandDetected::SharedPtr       msg){ rpb_vehicle_land_detected       ->publish(*msg); }
-    void cb_vehicle_local_position      (const px4_msgs::msg::VehicleLocalPosition::SharedPtr      msg){ rpb_vehicle_local_position      ->publish(*msg); px4_cpos = *msg; px4_cpos_good = true; }
-    void cb_vehicle_odometry            (const px4_msgs::msg::VehicleOdometry::SharedPtr           msg){ rpb_vehicle_odometry            ->publish(*msg); grab_odom(msg); }
-    void cb_vehicle_status_v1           (const px4_msgs::msg::VehicleStatus::SharedPtr             msg){ rpb_vehicle_status_v1           ->publish(*msg); px4_status = *msg; px4_status_good = true; }
-    void cb_vtol_vehicle_status         (const px4_msgs::msg::VtolVehicleStatus::SharedPtr         msg){ rpb_vtol_vehicle_status         ->publish(*msg); }
+
     
     void publish_offboard_control_mode();
     void publish_trajectory_setpoint();
     void publish_vehicle_command(uint16_t command, float param1 = 0.0, float param2 = 0.0);
     
-    void init_fmu_sub_pub();
+    void rqtrepub_init();
+    void rqtrepub_reset();
+    void init_px4_sub_pub();
     
     int spin_main();
     
